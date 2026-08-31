@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { ArrowLeft, Beaker, BookOpen, Camera, CheckCircle2, CircleHelp, Computer, Gamepad2, Lightbulb, Map, MapPin, Medal, Music2, Trophy, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ArTreasureExperience } from '@/components/ar-treasure-experience';
+import { TestArMarkerScanner } from '@/components/test-ar-marker-scanner';
 import { QrMarkerScanner } from '@/components/qr-marker-scanner';
 import { parseMarkerPayload } from '@/lib/ar/marker-code';
 import { assignTreasures, findLocation, markerIdFor, type LocationId, type MarkerStage } from '@/lib/treasure-data';
@@ -22,7 +22,14 @@ export default function Home() {
   const [currentLocation, setCurrentLocation] = useState<LocationId>('classroom');
   const [draft, setDraft] = useState<SavedGame | null>(null);
 
-  useEffect(() => { setGame(loadGame()); }, []);
+  useEffect(() => {
+    const savedGame = loadGame();
+    setGame(savedGame);
+    if (savedGame && new URLSearchParams(window.location.search).has('ar-return')) {
+      setScreen(savedGame.screen as Screen);
+      window.history.replaceState({}, '', '/');
+    }
+  }, []);
   const target = useMemo(() => game ? findLocation(game.assignedTreasures[game.step]) : null, [game]);
   const persist = (next: SavedGame, nextScreen: Screen) => { const saved = { ...next, screen: nextScreen }; setGame(saved); saveGame(saved); setScreen(nextScreen); };
   const newGame = () => { clearGame(); setGame(null); setNickname(''); setCurrentLocation('classroom'); setScreen('setup'); };
@@ -73,9 +80,9 @@ export default function Home() {
 
       {screen === 'marker' && game && target && <><p className="panel-label">AR 마커 인식 · {game.step + 1}/3</p><QrMarkerScanner onDetected={scanMarkerCode} /><p className="marker-camera-help">카메라는 QR 마커 인식에만 사용되며 영상은 저장되지 않습니다.</p>{process.env.NODE_ENV === 'development' && <div className="marker-test-mode"><small>개발용 인식 테스트</small><div className="marker-buttons"><button onClick={() => scanMarker(markerIdFor(target.id, game.hintLevel as MarkerStage))}>현재 단서</button><button onClick={() => scanMarker(markerIdFor(target.id, 3))}>보물 발견</button><button onClick={() => scanMarker('other-marker')}>다른 마커</button></div></div>}</>}
 
-      {screen === 'ar' && game && target && <><p className="panel-label">진짜 AR 보물 발견 · {game.step + 1}/3</p><h2>추적 마커 위에<br />보물을 소환하세요!</h2><ArTreasureExperience onCollect={() => persist(game, 'found')} /><a className="hiro-marker-link" href="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" target="_blank" rel="noreferrer">테스트용 Hiro 마커 열기</a></>}
+      {screen === 'ar' && game && target && <><p className="panel-label">진짜 AR 보물 발견 · {game.step + 1}/3</p><h2>추적 마커 위에<br />보물을 소환하세요!</h2><TestArMarkerScanner mode="treasure" onHintFound={() => undefined} onCollect={() => persist(game, 'found')} /></>}
 
-      {screen === 'ar-test' && game && target && <><p className="panel-label">단일 마커 AR 테스트 · 힌트 {game.hintLevel}/3</p><h2>{game.hintLevel < 3 ? 'Hiro 마커를 찾아\n다음 힌트를 여세요!' : 'Hiro 마커 위에\n보물을 소환하세요!'}</h2><ArTreasureExperience mode={game.hintLevel < 3 ? 'hint' : 'treasure'} onHintFound={() => scanMarker(markerIdFor(target.id, game.hintLevel as MarkerStage))} onCollect={collectTestTreasure} /><a className="hiro-marker-link" href="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" target="_blank" rel="noreferrer">테스트용 Hiro 마커 열기</a></>}
+      {screen === 'ar-test' && game && target && <><p className="panel-label">단일 마커 AR 테스트 · 힌트 {game.hintLevel}/3</p><h2>{game.hintLevel < 3 ? '테스트 마커를 찾아\n다음 힌트를 여세요!' : '테스트 마커 위에\n보물을 소환하세요!'}</h2><TestArMarkerScanner mode={game.hintLevel < 3 ? 'hint' : 'treasure'} onHintFound={() => scanMarker(markerIdFor(target.id, game.hintLevel as MarkerStage))} onCollect={collectTestTreasure} /></>}
 
       {screen === 'wrong' && game && <><p className="panel-label">다시 찾아보세요</p><CircleHelp className="panel-icon" /><h2>현재 찾고 있는<br />보물 마커가 아닙니다.</h2><p>기존 힌트를 다시 확인하고 탐험을 계속하세요. 게임 단계와 힌트는 바뀌지 않습니다.</p><Button className="panel-primary" onClick={() => persist(game, 'hint')}>힌트 다시 보기</Button></>}
 

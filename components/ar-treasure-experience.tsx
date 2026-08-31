@@ -8,23 +8,13 @@ type ArTreasureExperienceProps = {
   onCollect: () => void;
 };
 
-export function ArTreasureExperience({ mode = 'treasure', onHintFound, onCollect }: ArTreasureExperienceProps) {
+export function ArTreasureExperience({ mode = 'treasure' }: ArTreasureExperienceProps) {
   useEffect(() => {
-    const receiveMessage = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
-      if (event.data === 'school-treasure-hunt:test-hint-found') onHintFound?.();
-      if (event.data === 'school-treasure-hunt:collect-ar-treasure') onCollect();
-    };
-    window.addEventListener('message', receiveMessage);
-    return () => window.removeEventListener('message', receiveMessage);
-  }, [onCollect, onHintFound]);
+    window.location.assign(`/ar/treasure.html?mode=${mode}`);
+  }, [mode]);
 
-  return <div className="ar-experience">
-    <iframe
-      className="ar-experience-frame"
-      src={`/ar/treasure.html?mode=${mode}`}
-      title="마커 추적 AR 보물상자"
-      allow="camera"
-    />
+  return <div className="ar-experience-loading">
+    <strong>전체 화면 AR 카메라를 여는 중…</strong>
+    <p>잠시 후 카메라 권한을 허용해주세요.</p>
   </div>;
 }

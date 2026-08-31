@@ -11,12 +11,14 @@
       .guide{position:fixed;z-index:10;top:14px;left:50%;width:max-content;max-width:86%;transform:translateX(-50%);padding:9px 14px;border-radius:999px;background:rgba(19,41,25,.86);color:#fff1a8;font-size:13px;font-weight:900;text-align:center}
       .collect{position:fixed;z-index:10;left:50%;bottom:24px;transform:translateX(-50%);width:min(86%,360px);height:52px;border:2px solid #71480d;border-radius:13px;background:#f4c64f;color:#38240b;font:900 16px system-ui;box-shadow:0 8px 25px rgba(0,0,0,.42);display:none}
       .collect.visible{display:block;animation:pop .45s ease-out}
+      .back{position:fixed;z-index:10;top:62px;left:14px;padding:8px 11px;border:1px solid rgba(255,255,255,.5);border-radius:9px;background:rgba(0,0,0,.58);color:white;font:800 12px system-ui;text-decoration:none}
       @keyframes pop{from{opacity:0;transform:translateX(-50%) scale(.7)}to{opacity:1;transform:translateX(-50%) scale(1)}}
       .a-enter-vr{display:none!important}
     </style>
   </head>
   <body>
     <div id="guide" class="guide">Hiro AR 마커를 카메라에 비춰주세요</div>
+    <a class="back" href="/?ar-return=1">게임으로 돌아가기</a>
     <button id="collect" class="collect" type="button">보물 획득하기</button>
     <a-scene embedded vr-mode-ui="enabled:false" renderer="antialias:true;alpha:true" arjs="sourceType:webcam;trackingMethod:best;debugUIEnabled:false;">
       <a-assets><img id="treasure" src="/reward-treasure-chest.png" crossorigin="anonymous" /></a-assets>
@@ -36,9 +38,11 @@
       hintContent.setAttribute('visible',mode==='hint');
       treasureContent.setAttribute('visible',mode==='treasure');
       let hintSent=false;
-      marker.addEventListener('markerFound',()=>{if(mode==='hint'){guide.textContent='힌트 마커 인식 완료!';if(!hintSent){hintSent=true;setTimeout(()=>parent.postMessage('school-treasure-hunt:test-hint-found',location.origin),650)}}else{guide.textContent='보물 발견! 마커 위에 나타났어요';collect.classList.add('visible')}});
+      const loadGame=()=>{try{return JSON.parse(localStorage.getItem('school-treasure-hunt-game')||'null')}catch{return null}};
+      const saveAndReturn=(game)=>{localStorage.setItem('school-treasure-hunt-game',JSON.stringify(game));location.replace('/?ar-return=1')};
+      marker.addEventListener('markerFound',()=>{if(mode==='hint'){guide.textContent='힌트 마커 인식 완료!';if(!hintSent){hintSent=true;setTimeout(()=>{const game=loadGame();if(game)saveAndReturn({...game,hintLevel:Math.min(3,game.hintLevel+1),screen:'hint'})},650)}}else{guide.textContent='보물 발견! 마커 위에 나타났어요';collect.classList.add('visible')}});
       marker.addEventListener('markerLost',()=>{guide.textContent='마커가 화면에서 벗어났습니다';collect.classList.remove('visible')});
-      collect.addEventListener('click',()=>parent.postMessage('school-treasure-hunt:collect-ar-treasure',location.origin));
+      collect.addEventListener('click',()=>{const game=loadGame();if(!game)return;const target=game.assignedTreasures[game.step];const collectedTreasures=[...new Set([...(game.collectedTreasures||[]),target])];saveAndReturn({...game,collectedTreasures,screen:'found'})});
     </script>
   </body>
 </html>
