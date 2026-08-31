@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { ArrowLeft, Beaker, BookOpen, Camera, CheckCircle2, CircleHelp, Computer, Gamepad2, Lightbulb, Map, MapPin, Medal, Music2, ScanLine, Trophy, X } from 'lucide-react';
+import { ArrowLeft, Beaker, BookOpen, Camera, CheckCircle2, CircleHelp, Computer, Gamepad2, Lightbulb, Map, MapPin, Medal, Music2, Trophy, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { QrMarkerScanner } from '@/components/qr-marker-scanner';
+import { parseMarkerPayload } from '@/lib/ar/marker-code';
 import { assignTreasures, findLocation, markerIdFor, type LocationId, type MarkerStage } from '@/lib/treasure-data';
 import { clearGame, loadGame, saveGame, type SavedGame } from '@/lib/game-storage';
 
@@ -41,6 +43,7 @@ export default function Home() {
     if (stage < 3 && markerId === markerIdFor(target.id, stage)) { persist({ ...game, hintLevel: stage + 1 }, 'hint'); return; }
     persist(game, 'wrong');
   };
+  const scanMarkerCode = (decodedText: string) => scanMarker(parseMarkerPayload(decodedText) ?? 'invalid-marker');
   const nextTreasure = () => { if (!game) return; const collectedTreasures = [...new Set([...(game.collectedTreasures ?? []), game.assignedTreasures[game.step]])]; const isLast = game.step === game.assignedTreasures.length - 1; if (isLast) persist({ ...game, collectedTreasures, coupon: game.coupon ?? coupon() }, 'final'); else persist({ ...game, collectedTreasures, step: game.step + 1, hintLevel: 1 }, 'map'); };
   const backToMap = () => game && persist(game, 'map');
 
@@ -61,7 +64,7 @@ export default function Home() {
 
       {screen === 'hint' && game && target && <><p className="panel-label">힌트 보기 · {game.step + 1} / 3</p><h2>단서를 따라<br />AR 마커를 찾아보세요</h2><div className="hint-stack">{target.hints.map((hint, index) => <article key={hint} className={index < game.hintLevel ? 'hint-open' : 'hint-locked'}><b>{index + 1}단계 힌트</b><p>{index < game.hintLevel ? hint : '이전 마커를 인식하면 열립니다.'}</p></article>)}</div><p className="marker-flow-note">마커를 인식하면 다음 단서가 열립니다. 보물 마커를 바로 찾으면 즉시 보물을 획득할 수 있어요.</p><Button className="panel-primary" onClick={openMarker}><Camera /> AR 마커 인식하기</Button></>}
 
-      {screen === 'marker' && game && target && <><p className="panel-label">AR 마커 인식 · {game.step + 1}/3</p><div className="camera-preview"><ScanLine /><div className="scan-frame" /><span>AR 마커를 화면 중앙에 맞춰주세요</span></div><p>개발용 테스트 모드입니다. 실제 카메라처럼 인식한 마커의 종류에 따라 다음 단서 또는 보물 발견으로 이어집니다.</p><div className="marker-buttons"><button onClick={() => scanMarker(markerIdFor(target.id, game.hintLevel as MarkerStage))}>현재 단서 마커 인식 테스트</button><button onClick={() => scanMarker(markerIdFor(target.id, 3))}>발견한 마커 인식 테스트</button><button onClick={() => scanMarker('other-marker')}>다른 마커 테스트</button></div></>}
+      {screen === 'marker' && game && target && <><p className="panel-label">AR 마커 인식 · {game.step + 1}/3</p><QrMarkerScanner onDetected={scanMarkerCode} /><p className="marker-camera-help">카메라는 QR 마커 인식에만 사용되며 영상은 저장되지 않습니다.</p>{process.env.NODE_ENV === 'development' && <div className="marker-test-mode"><small>개발용 인식 테스트</small><div className="marker-buttons"><button onClick={() => scanMarker(markerIdFor(target.id, game.hintLevel as MarkerStage))}>현재 단서</button><button onClick={() => scanMarker(markerIdFor(target.id, 3))}>보물 발견</button><button onClick={() => scanMarker('other-marker')}>다른 마커</button></div></div>}</>}
 
       {screen === 'wrong' && game && <><p className="panel-label">다시 찾아보세요</p><CircleHelp className="panel-icon" /><h2>현재 찾고 있는<br />보물 마커가 아닙니다.</h2><p>기존 힌트를 다시 확인하고 탐험을 계속하세요. 게임 단계와 힌트는 바뀌지 않습니다.</p><Button className="panel-primary" onClick={() => persist(game, 'hint')}>힌트 다시 보기</Button></>}
 
