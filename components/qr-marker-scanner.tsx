@@ -6,6 +6,11 @@ import { Button } from '@/components/ui/button';
 
 type ScannerStatus = 'idle' | 'starting' | 'scanning' | 'error';
 
+type CameraOption = {
+  id: string;
+  label: string;
+};
+
 type QrMarkerScannerProps = {
   onDetected: (decodedText: string) => void;
 };
@@ -16,6 +21,8 @@ export function QrMarkerScanner({ onDetected }: QrMarkerScannerProps) {
   const handledRef = useRef(false);
   const [status, setStatus] = useState<ScannerStatus>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [cameras, setCameras] = useState<CameraOption[]>([]);
+  const [cameraId, setCameraId] = useState('');
 
   const stopScanner = async () => {
     const scanner = scannerRef.current;
@@ -40,13 +47,24 @@ export function QrMarkerScanner({ onDetected }: QrMarkerScannerProps) {
     };
   }, []);
 
-  const startScanner = async () => {
+  const startScanner = async (requestedCameraId?: string) => {
     setStatus('starting');
     setErrorMessage('');
     handledRef.current = false;
 
     try {
       const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import('html5-qrcode');
+      const detectedCameras = await Html5Qrcode.getCameras();
+      if (detectedCameras.length === 0) throw new Error('No camera found');
+
+      setCameras(detectedCameras);
+      const rearCamera = detectedCameras.find((camera) =>
+        /back|rear|environment|후면/i.test(camera.label),
+      );
+      const selectedCameraId =
+        requestedCameraId || cameraId || rearCamera?.id || detectedCameras[0].id;
+      setCameraId(selectedCameraId);
+
       const scanner = new Html5Qrcode(readerId, {
         formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
         verbose: false,
@@ -54,7 +72,7 @@ export function QrMarkerScanner({ onDetected }: QrMarkerScannerProps) {
       scannerRef.current = scanner;
 
       await scanner.start(
-        { facingMode: 'environment' },
+        selectedCameraId,
         { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1 },
         (decodedText) => {
           if (handledRef.current) return;
@@ -76,6 +94,12 @@ export function QrMarkerScanner({ onDetected }: QrMarkerScannerProps) {
     }
   };
 
+  const changeCamera = async (nextCameraId: string) => {
+    setCameraId(nextCameraId);
+    await stopScanner();
+    await startScanner(nextCameraId);
+  };
+
   return (
     <div className="qr-scanner">
       <div className={`camera-preview camera-preview-${status}`}>
@@ -86,6 +110,19 @@ export function QrMarkerScanner({ onDetected }: QrMarkerScannerProps) {
       </div>
 
       {errorMessage && <p className="camera-error" role="alert">{errorMessage}</p>}
+
+      {cameras.length > 1 && (
+        <label className="camera-picker">
+          사용할 카메라
+          <select value={cameraId} onChange={(event) => void changeCamera(event.target.value)}>
+            {cameras.map((camera, index) => (
+              <option key={camera.id} value={camera.id}>
+                {camera.label || `카메라 ${index + 1}`}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
 
       {status === 'scanning' ? (
         <Button className="camera-control" variant="outline" onClick={() => void stopScanner()}>
