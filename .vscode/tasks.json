@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "게임 실행 (개발 모드)",
+      "type": "shell",
+      "command": "C:\\Users\\gyun1\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin\\node.exe",
+      "args": ["node_modules/vinext/dist/cli.js", "dev", "--port", "3001"],
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "game" }
+    },
+    {
+      "label": "빌드 확인",
+      "type": "shell",
+      "command": "C:\\Users\\gyun1\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin\\node.exe",
+      "args": ["node_modules/vinext/dist/cli.js", "build"],
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    }
+  ]
+}
