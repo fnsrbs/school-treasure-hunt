@@ -21,8 +21,8 @@
     <a-scene embedded vr-mode-ui="enabled:false" renderer="antialias:true;alpha:true" arjs="sourceType:webcam;trackingMethod:best;debugUIEnabled:false;">
       <a-assets><img id="treasure" src="/reward-treasure-chest.png" crossorigin="anonymous" /></a-assets>
       <a-marker id="hiro-marker" preset="hiro" emitevents="true" smooth="true" smooth-count="10" smooth-tolerance="0.01" smooth-threshold="5">
-        <a-ring position="0 0.03 0" rotation="-90 0 0" radius-inner="0.66" radius-outer="0.76" color="#ffd84d" material="opacity:.82;transparent:true" animation="property:rotation;to:-90 0 360;loop:true;dur:3500;easing:linear"></a-ring>
-        <a-image src="#treasure" position="0 0.48 0" rotation="-90 0 0" width="1.35" height="1.05" material="transparent:true" animation="property:position;dir:alternate;to:0 0.62 0;loop:true;dur:900;easing:easeInOutSine"></a-image>
+        <a-entity id="hint-content"><a-sphere position="0 0.45 0" radius="0.26" color="#fff078" material="emissive:#ffc928;emissiveIntensity:1" animation="property:position;dir:alternate;to:0 0.65 0;loop:true;dur:700;easing:easeInOutSine"></a-sphere></a-entity>
+        <a-entity id="treasure-content"><a-ring position="0 0.03 0" rotation="-90 0 0" radius-inner="0.66" radius-outer="0.76" color="#ffd84d" material="opacity:.82;transparent:true" animation="property:rotation;to:-90 0 360;loop:true;dur:3500;easing:linear"></a-ring><a-image src="#treasure" position="0 0.48 0" rotation="-90 0 0" width="1.35" height="1.05" material="transparent:true" animation="property:position;dir:alternate;to:0 0.62 0;loop:true;dur:900;easing:easeInOutSine"></a-image></a-entity>
       </a-marker>
       <a-entity camera></a-entity>
     </a-scene>
@@ -30,7 +30,13 @@
       const marker=document.getElementById('hiro-marker');
       const guide=document.getElementById('guide');
       const collect=document.getElementById('collect');
-      marker.addEventListener('markerFound',()=>{guide.textContent='보물 발견! 마커 위에 나타났어요';collect.classList.add('visible')});
+      const mode=new URLSearchParams(location.search).get('mode')==='hint'?'hint':'treasure';
+      const hintContent=document.getElementById('hint-content');
+      const treasureContent=document.getElementById('treasure-content');
+      hintContent.setAttribute('visible',mode==='hint');
+      treasureContent.setAttribute('visible',mode==='treasure');
+      let hintSent=false;
+      marker.addEventListener('markerFound',()=>{if(mode==='hint'){guide.textContent='힌트 마커 인식 완료!';if(!hintSent){hintSent=true;setTimeout(()=>parent.postMessage('school-treasure-hunt:test-hint-found',location.origin),650)}}else{guide.textContent='보물 발견! 마커 위에 나타났어요';collect.classList.add('visible')}});
       marker.addEventListener('markerLost',()=>{guide.textContent='마커가 화면에서 벗어났습니다';collect.classList.remove('visible')});
       collect.addEventListener('click',()=>parent.postMessage('school-treasure-hunt:collect-ar-treasure',location.origin));
     </script>
