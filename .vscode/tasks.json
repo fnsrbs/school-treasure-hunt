@@ -4,8 +4,8 @@
     {
       "label": "게임 실행 (개발 모드)",
       "type": "shell",
-      "command": "C:\\Users\\gyun1\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin\\node.exe",
-      "args": ["node_modules/vinext/dist/cli.js", "dev", "--port", "3001"],
+      "command": "npm",
+      "args": ["run", "dev", "--", "--port", "3001"],
       "isBackground": true,
       "problemMatcher": [],
       "presentation": { "reveal": "always", "panel": "dedicated", "group": "game" }
@@ -13,8 +13,8 @@
     {
       "label": "빌드 확인",
       "type": "shell",
-      "command": "C:\\Users\\gyun1\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin\\node.exe",
-      "args": ["node_modules/vinext/dist/cli.js", "build"],
+      "command": "npm",
+      "args": ["run", "build"],
       "problemMatcher": [],
       "presentation": { "reveal": "always", "panel": "dedicated" }
     }

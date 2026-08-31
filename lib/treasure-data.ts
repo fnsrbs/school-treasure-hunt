@@ -1,4 +1,6 @@
-import type { LocationId } from './school-map';
+import type { LocationId } from './data/school-map';
+
+export type { LocationId } from './data/school-map';
 
 export type Location = {
   id: LocationId;

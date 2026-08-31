@@ -1,9 +1,9 @@
 import type { LocationId } from './school-map';
 
-export const hintTree: Record<
+export const hintTree: Partial<Record<
   LocationId,
   { root: string; children: [string, string, string] }
-> = {
+>> = {
   classroom: {
     root: '학생들이 자주 오가는 공간과 가까운 곳에 있어요.',
     children: [
