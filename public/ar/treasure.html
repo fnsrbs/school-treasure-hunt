@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>AR 보물 발견</title>
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.8/aframe/build/aframe-ar.js"></script>
+    <style>
+      html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#050806;font-family:system-ui,sans-serif}
+      .guide{position:fixed;z-index:10;top:14px;left:50%;width:max-content;max-width:86%;transform:translateX(-50%);padding:9px 14px;border-radius:999px;background:rgba(19,41,25,.86);color:#fff1a8;font-size:13px;font-weight:900;text-align:center}
+      .collect{position:fixed;z-index:10;left:50%;bottom:24px;transform:translateX(-50%);width:min(86%,360px);height:52px;border:2px solid #71480d;border-radius:13px;background:#f4c64f;color:#38240b;font:900 16px system-ui;box-shadow:0 8px 25px rgba(0,0,0,.42);display:none}
+      .collect.visible{display:block;animation:pop .45s ease-out}
+      @keyframes pop{from{opacity:0;transform:translateX(-50%) scale(.7)}to{opacity:1;transform:translateX(-50%) scale(1)}}
+      .a-enter-vr{display:none!important}
+    </style>
+  </head>
+  <body>
+    <div id="guide" class="guide">Hiro AR 마커를 카메라에 비춰주세요</div>
+    <button id="collect" class="collect" type="button">보물 획득하기</button>
+    <a-scene embedded vr-mode-ui="enabled:false" renderer="antialias:true;alpha:true" arjs="sourceType:webcam;trackingMethod:best;debugUIEnabled:false;">
+      <a-assets><img id="treasure" src="/reward-treasure-chest.png" crossorigin="anonymous" /></a-assets>
+      <a-marker id="hiro-marker" preset="hiro" emitevents="true" smooth="true" smooth-count="10" smooth-tolerance="0.01" smooth-threshold="5">
+        <a-ring position="0 0.03 0" rotation="-90 0 0" radius-inner="0.66" radius-outer="0.76" color="#ffd84d" material="opacity:.82;transparent:true" animation="property:rotation;to:-90 0 360;loop:true;dur:3500;easing:linear"></a-ring>
+        <a-image src="#treasure" position="0 0.48 0" rotation="-90 0 0" width="1.35" height="1.05" material="transparent:true" animation="property:position;dir:alternate;to:0 0.62 0;loop:true;dur:900;easing:easeInOutSine"></a-image>
+      </a-marker>
+      <a-entity camera></a-entity>
+    </a-scene>
+    <script>
+      const marker=document.getElementById('hiro-marker');
+      const guide=document.getElementById('guide');
+      const collect=document.getElementById('collect');
+      marker.addEventListener('markerFound',()=>{guide.textContent='보물 발견! 마커 위에 나타났어요';collect.classList.add('visible')});
+      marker.addEventListener('markerLost',()=>{guide.textContent='마커가 화면에서 벗어났습니다';collect.classList.remove('visible')});
+      collect.addEventListener('click',()=>parent.postMessage('school-treasure-hunt:collect-ar-treasure',location.origin));
+    </script>
+  </body>
+</html>
