@@ -37,12 +37,12 @@
       const treasureContent=document.getElementById('treasure-content');
       hintContent.setAttribute('visible',mode==='hint');
       treasureContent.setAttribute('visible',mode==='treasure');
-      let hintSent=false;
       const loadGame=()=>{try{return JSON.parse(localStorage.getItem('school-treasure-hunt-game')||'null')}catch{return null}};
       const saveAndReturn=(game)=>{localStorage.setItem('school-treasure-hunt-game',JSON.stringify(game));location.replace('/?ar-return=1')};
-      marker.addEventListener('markerFound',()=>{if(mode==='hint'){guide.textContent='힌트 마커 인식 완료!';if(!hintSent){hintSent=true;setTimeout(()=>{const game=loadGame();if(game)saveAndReturn({...game,hintLevel:Math.min(3,game.hintLevel+1),screen:'hint'})},650)}}else{guide.textContent='보물 발견! 마커 위에 나타났어요';collect.classList.add('visible')}});
+      if(mode==='hint')collect.textContent='힌트 확인하기';
+      marker.addEventListener('markerFound',()=>{if(mode==='hint'){guide.textContent='힌트 마커 인식 완료!';collect.classList.add('visible')}else{guide.textContent='보물 발견! 마커 위에 나타났어요';collect.classList.add('visible')}});
       marker.addEventListener('markerLost',()=>{guide.textContent='마커가 화면에서 벗어났습니다';collect.classList.remove('visible')});
-      collect.addEventListener('click',()=>{const game=loadGame();if(!game)return;const target=game.assignedTreasures[game.step];const collectedTreasures=[...new Set([...(game.collectedTreasures||[]),target])];saveAndReturn({...game,collectedTreasures,screen:'found'})});
+      collect.addEventListener('click',()=>{const game=loadGame();if(!game)return;if(mode==='hint'){saveAndReturn({...game,hintLevel:Math.min(3,game.hintLevel+1),screen:'hint'});return}const target=game.assignedTreasures[game.step];const collectedTreasures=[...new Set([...(game.collectedTreasures||[]),target])];saveAndReturn({...game,collectedTreasures,screen:'found'})});
     </script>
   </body>
 </html>
