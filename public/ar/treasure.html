@@ -21,7 +21,7 @@
     <a class="back" href="/?ar-return=1">게임으로 돌아가기</a>
     <button id="collect" class="collect" type="button">보물 획득하기</button>
     <a-scene embedded vr-mode-ui="enabled:false" renderer="antialias:true;alpha:true" arjs="sourceType:webcam;trackingMethod:best;debugUIEnabled:false;">
-      <a-assets><img id="treasure" src="/reward-treasure-chest.png" crossorigin="anonymous" /></a-assets>
+      <a-assets><img id="treasure" src="/reward-treasure-small.png?asset=individual-v2" crossorigin="anonymous" /></a-assets>
       <a-marker id="hiro-marker" preset="hiro" emitevents="true" smooth="true" smooth-count="10" smooth-tolerance="0.01" smooth-threshold="5">
         <a-entity id="hint-content"><a-sphere position="0 0.45 0" radius="0.26" color="#fff078" material="emissive:#ffc928;emissiveIntensity:1" animation="property:position;dir:alternate;to:0 0.65 0;loop:true;dur:700;easing:easeInOutSine"></a-sphere></a-entity>
         <a-entity id="treasure-content"><a-ring position="0 0.03 0" rotation="-90 0 0" radius-inner="0.66" radius-outer="0.76" color="#ffd84d" material="opacity:.82;transparent:true" animation="property:rotation;to:-90 0 360;loop:true;dur:3500;easing:linear"></a-ring><a-image src="#treasure" position="0 0.48 0" rotation="-90 0 0" width="1.35" height="1.05" material="transparent:true" animation="property:position;dir:alternate;to:0 0.62 0;loop:true;dur:900;easing:easeInOutSine"></a-image></a-entity>

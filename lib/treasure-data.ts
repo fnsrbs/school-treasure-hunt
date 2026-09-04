@@ -555,22 +555,3 @@ export const assignTreasures = (
     .sort(() => Math.random() - 0.5)
     .slice(0, 3);
 };
-
-
-// --------------------------------------------------
-// 학교 그래프 간선
-// --------------------------------------------------
-
-export const schoolEdges: Array<
-  [LocationId, LocationId, number]
-> = [
-  ['classroom', 'music', 8],
-  ['classroom', 'gym', 18],
-
-  ['music', 'computer', 16],
-
-  ['computer', 'science', 10],
-  ['computer', 'library', 12],
-
-  ['library', 'science', 14],
-];

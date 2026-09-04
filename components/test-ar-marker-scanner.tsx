@@ -72,7 +72,7 @@ export function TestArMarkerScanner({ mode, onHintFound, onCollect }: TestArMark
       <video ref={videoRef} autoPlay muted playsInline />
       {!running && <div className="test-ar-placeholder"><Camera /><span>테스트 AR 카메라</span></div>}
       {found && <div className="test-ar-anchor" style={{ left: `${anchor.left}%`, top: `${anchor.top}%`, width: `${anchor.size}%` }}>
-        {mode === 'treasure' ? <Image src="/reward-treasure-chest.png" alt="AR 보물상자" width={300} height={300} /> : <span>✦ 힌트 발견 ✦</span>}
+        {mode === 'treasure' ? <Image src="/reward-treasure-small.png?asset=individual-v2" alt="AR 개별 보물" width={300} height={300} unoptimized /> : <span>✦ 힌트 발견 ✦</span>}
       </div>}
       {running && !found && <p className="test-ar-guide">테스트 마커를 비춰주세요</p>}
     </div>

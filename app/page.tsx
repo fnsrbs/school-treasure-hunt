@@ -8,12 +8,13 @@ import { QrMarkerScanner } from '@/components/qr-marker-scanner';
 import { parseMarkerPayload } from '@/lib/ar/marker-code';
 import { assignTreasures, findLocation, markerIdFor, type LocationId, type MarkerStage } from '@/lib/treasure-data';
 import { clearGame, loadGame, saveGame, type SavedGame } from '@/lib/game-storage';
+import { createRouteGuide } from '@/lib/game/route-hints';
 
 type Screen = 'home' | 'setup' | 'assignment' | 'map' | 'hint' | 'marker' | 'ar' | 'ar-test' | 'wrong' | 'found' | 'final' | 'coupon' | 'ranking' | 'exit';
 const iconFor: Partial<Record<LocationId, typeof BookOpen>> = { classroom: MapPin, library: BookOpen, computer: Computer, science: Beaker, music: Music2, gym: Trophy };
 
 const coupon = () => `${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`;
-const TreasureChestMark = () => <img className="treasure-map-icon" src="/reward-treasure-chest.png" alt="보물상자" />;
+const TreasureChestMark = () => <img className="treasure-map-icon" src="/reward-treasure-small.png?asset=individual-v2" alt="획득한 개별 보물" />;
 
 export default function Home() {
   const [screen, setScreen] = useState<Screen>('home');
@@ -31,6 +32,7 @@ export default function Home() {
     }
   }, []);
   const target = useMemo(() => game ? findLocation(game.assignedTreasures[game.step]) : null, [game]);
+  const routeGuide = useMemo(() => game && target ? createRouteGuide(game.currentLocation, target.id) : null, [game, target]);
   const persist = (next: SavedGame, nextScreen: Screen) => { const saved = { ...next, screen: nextScreen }; setGame(saved); saveGame(saved); setScreen(nextScreen); };
   const newGame = () => { clearGame(); setGame(null); setNickname(''); setCurrentLocation('classroom'); setScreen('setup'); };
   const createAssignment = (event: FormEvent) => {
@@ -58,7 +60,7 @@ export default function Home() {
     const collectedTreasures = [...new Set([...(game.collectedTreasures ?? []), target.id])];
     persist({ ...game, collectedTreasures }, 'found');
   };
-  const nextTreasure = () => { if (!game) return; const collectedTreasures = [...new Set([...(game.collectedTreasures ?? []), game.assignedTreasures[game.step]])]; const isLast = game.step === game.assignedTreasures.length - 1; if (isLast) persist({ ...game, collectedTreasures, coupon: game.coupon ?? coupon() }, 'final'); else persist({ ...game, collectedTreasures, step: game.step + 1, hintLevel: 1 }, 'map'); };
+  const nextTreasure = () => { if (!game) return; const foundAt = game.assignedTreasures[game.step]; const collectedTreasures = [...new Set([...(game.collectedTreasures ?? []), foundAt])]; const isLast = game.step === game.assignedTreasures.length - 1; if (isLast) persist({ ...game, currentLocation: foundAt, collectedTreasures, coupon: game.coupon ?? coupon() }, 'final'); else persist({ ...game, currentLocation: foundAt, collectedTreasures, step: game.step + 1, hintLevel: 1 }, 'map'); };
   const backToMap = () => game && persist(game, 'map');
 
   return <main className="game-shell"><section className="game-screen festival-game" aria-label="학교 축제 AR 보물찾기">
@@ -74,9 +76,9 @@ export default function Home() {
 
       {screen === 'assignment' && draft && <><p className="panel-label">보물 배정</p><img className="assigned-treasure-chest" src="/assigned-treasure-chest.png" alt="잠긴 보물상자" /><h2>보물이 배정되었습니다!</h2><p><b>{draft.nickname}</b> 탐험대만의 보물 순서가 정해졌어요. 위치는 힌트를 따라 찾아야 합니다.</p><ol className="assignment-list">{draft.assignedTreasures.map((id, index) => <li key={id}><b>{index + 1}</b>보물 {index + 1}<small>위치 비공개</small></li>)}</ol><Button className="panel-primary" onClick={startAssignedGame}>확인</Button></>}
 
-      {screen === 'map' && game && target && <><p className="panel-label">학교 지도 · 보물 찾기 {game.step + 1} / 3</p><div className="player-strip"><MapPin /><span>{game.nickname}</span><small>현재 위치: {findLocation(game.currentLocation).name}</small></div><h2>학교 곳곳의 AR 마커를 찾아<br />보물을 획득하세요!</h2><SchoolMap current={game.currentLocation} collected={game.collectedTreasures ?? []} /><div className="progress-card"><Lightbulb /><div><small>현재 힌트 ({game.hintLevel}/3)</small><strong>{target.hints[game.hintLevel - 1]}</strong></div></div><Button className="panel-primary" onClick={() => persist(game, 'hint')}>힌트 보기</Button></>}
+      {screen === 'map' && game && target && routeGuide && <><p className="panel-label">학교 지도 · 보물 찾기 {game.step + 1} / 3</p><div className="player-strip"><MapPin /><span>{game.nickname}</span><small>현재 위치: {findLocation(game.currentLocation).name}</small></div><h2>학교 곳곳의 AR 마커를 찾아<br />보물을 획득하세요!</h2><SchoolMap current={game.currentLocation} collected={game.collectedTreasures ?? []} /><div className="progress-card"><Lightbulb /><div><small>현재 힌트 ({game.hintLevel}/3)</small><strong>{routeGuide.hints[game.hintLevel - 1]}</strong></div></div><Button className="panel-primary" onClick={() => persist(game, 'hint')}>힌트 보기</Button></>}
 
-      {screen === 'hint' && game && target && <><p className="panel-label">힌트 보기 · {game.step + 1} / 3</p><h2>단서를 따라<br />AR 마커를 찾아보세요</h2><div className="hint-stack">{target.hints.map((hint, index) => <article key={hint} className={index < game.hintLevel ? 'hint-open' : 'hint-locked'}><b>{index + 1}단계 힌트</b><p>{index < game.hintLevel ? hint : '이전 마커를 인식하면 열립니다.'}</p></article>)}</div><p className="marker-flow-note">마커를 인식하면 다음 단서가 열립니다. 보물 마커를 바로 찾으면 즉시 보물을 획득할 수 있어요.</p><Button className="panel-primary" onClick={openTestArMarker}><Camera /> 테스트용 AR 마커 인식</Button><Button className="qr-flow-button" variant="outline" onClick={openMarker}>기존 QR 마커 인식</Button></>}
+      {screen === 'hint' && game && target && routeGuide && <><p className="panel-label">힌트 보기 · {game.step + 1} / 3</p><h2>단서를 따라<br />AR 마커를 찾아보세요</h2><div className="hint-stack">{routeGuide.hints.map((hint, index) => <article key={`${index}-${hint}`} className={index < game.hintLevel ? 'hint-open' : 'hint-locked'}><b>{index + 1}단계 힌트</b><p>{index < game.hintLevel ? hint : '이전 마커를 인식하면 열립니다.'}</p></article>)}</div><p className="marker-flow-note">마커를 인식하면 다음 단서가 열립니다. 보물 마커를 바로 찾으면 즉시 보물을 획득할 수 있어요.</p><Button className="panel-primary" onClick={openTestArMarker}><Camera /> 테스트용 AR 마커 인식</Button><Button className="qr-flow-button" variant="outline" onClick={openMarker}>기존 QR 마커 인식</Button></>}
 
       {screen === 'marker' && game && target && <><p className="panel-label">AR 마커 인식 · {game.step + 1}/3</p><QrMarkerScanner onDetected={scanMarkerCode} /><p className="marker-camera-help">카메라는 QR 마커 인식에만 사용되며 영상은 저장되지 않습니다.</p>{process.env.NODE_ENV === 'development' && <div className="marker-test-mode"><small>개발용 인식 테스트</small><div className="marker-buttons"><button onClick={() => scanMarker(markerIdFor(target.id, game.hintLevel as MarkerStage))}>현재 단서</button><button onClick={() => scanMarker(markerIdFor(target.id, 3))}>보물 발견</button><button onClick={() => scanMarker('other-marker')}>다른 마커</button></div></div>}</>}
 
@@ -86,7 +88,7 @@ export default function Home() {
 
       {screen === 'wrong' && game && <><p className="panel-label">다시 찾아보세요</p><CircleHelp className="panel-icon" /><h2>현재 찾고 있는<br />보물 마커가 아닙니다.</h2><p>기존 힌트를 다시 확인하고 탐험을 계속하세요. 게임 단계와 힌트는 바뀌지 않습니다.</p><Button className="panel-primary" onClick={() => persist(game, 'hint')}>힌트 다시 보기</Button></>}
 
-      {screen === 'found' && game && target && <><p className="panel-label">보물을 찾았습니다!</p><div className={`treasure-found-scene ${game.step < 2 ? 'regular-treasure-found' : ''}`}><span>✦ 보물 발견 ✦</span><img src={game.step < 2 ? '/reward-treasure-small.png' : '/reward-treasure-chest.png'} alt="빛나는 보물상자" /></div><div className="treasure-found-card"><small>{game.step + 1}번째 보물 획득</small><strong>{target.name}의 보물을 찾았어요!</strong><p>{game.step < 2 ? '지도에 획득한 보물 표시가 남습니다.' : '세 개의 보물이 모두 모였습니다!'}</p></div><Button className="panel-primary" onClick={nextTreasure}>{game.step < 2 ? '다음 보물 지도 보기' : '최종 보물 열기'}</Button></>}
+      {screen === 'found' && game && target && <><p className="panel-label">보물을 찾았습니다!</p><div className="treasure-found-scene regular-treasure-found"><span>✦ 보물 발견 ✦</span><img src="/reward-treasure-small.png?asset=individual-v2" alt="빛나는 개별 보물" /></div><div className="treasure-found-card"><small>{game.step + 1}번째 보물 획득</small><strong>{target.name}의 보물을 찾았어요!</strong><p>{game.step < 2 ? '지도에 획득한 보물 표시가 남습니다.' : '세 개의 보물이 모두 모였습니다!'}</p></div><Button className="panel-primary" onClick={nextTreasure}>{game.step < 2 ? '다음 보물 지도 보기' : '최종 보물 열기'}</Button></>}
 
       {screen === 'final' && game && <><div className="final-treasure-scene"><span>✦ 보물 발견! ✦</span><h2>세 개의 보물이<br />하나로 모였습니다</h2><p>마지막 빛을 따라가면 현실의 보상이 나타납니다.</p><img src="/reward-treasure-chest.png" alt="최종 보물상자" /><strong>최종 보물 등장!</strong></div><Button className="panel-primary" onClick={() => persist(game, 'coupon')}>교환권 확인하기</Button></>}
 
