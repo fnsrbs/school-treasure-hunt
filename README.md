@@ -1,0 +1,59 @@
+# 학교 AR 보물찾기
+
+첨부한 학교 지도(1.png), 이동 거리 그래프(2.png), 완성 화면(3–5.png)을 기준으로 구현한 Next.js + TypeScript 모바일 웹 게임입니다.
+
+## 실행
+
+Node.js 20.9 이상과 pnpm을 사용합니다.
+
+```sh
+pnpm install
+pnpm dev
+```
+
+이 작업 환경에서는 설치된 실행 파일로 직접 실행할 수도 있습니다.
+
+```sh
+node node_modules/next/dist/bin/next dev --hostname 0.0.0.0
+node node_modules/tsx/dist/cli.mjs --test tests/game.test.ts
+node node_modules/typescript/bin/tsc --noEmit
+node node_modules/next/dist/bin/next build
+```
+
+개발 서버: http://localhost:3000. PC에서는 너비 390px의 게임이 중앙에 표시됩니다. 스마트폰 카메라는 HTTPS 주소에서 실행해야 합니다. localhost는 개발 예외입니다. 정적 빌드 결과는 `out/`에 생성됩니다.
+
+## 플레이 및 마커
+
+새 게임 → 닉네임·지도 위치 선택 → 보물 배정 → 지도·힌트 → QR 마커 인식 → 보물 3개 획득 → 최종 보물 → 교환권 순서입니다.
+
+`public/markers/index.html`(실행 중 `/markers/`)에서 실제 장소별 QR 마커 36장을 인쇄할 수 있습니다. 각 마커를 해당 장소에 배치하세요. QR 내용은 `data/locations.ts`의 markerId입니다. QR 해독은 jsQR로 수행하고 카메라는 getUserMedia로 후면 카메라를 우선 요청합니다. 인식 모듈은 `services/markerRecognition.ts`에 분리했습니다. 공간 추적이나 3D 앵커를 사용하는 WebXR 방식은 아닙니다.
+
+개발 서버의 카메라 화면에서 ‘개발 테스트’를 펼치면 정답·오답·단서 마커를 테스트할 수 있습니다. 배포 빌드에서는 이 도구가 표시되지 않습니다. 카메라 권한을 거절한 경우 안내와 재시도 버튼이 나타납니다.
+
+## 자료 해석
+
+- 실제 장소 36개, 오른쪽 계단 가상 정점 4개, 양방향 간선 46개입니다.
+- 오른쪽 계단은 요청문에 명시된 ‘모든 장소에서 통로까지 5, 층간 10’을 적용했습니다. 따라서 진로활동실도 통로 연결 거리 5를 사용합니다. 그림상 선에 명확히 적히지 않은 부분보다 상세 요청문을 우선했습니다.
+- 도서관·식당의 실제 건물 층은 원본 지도에서 각각 2층·3층으로 보존합니다. 데이터의 floor 0은 본관 층 탭과 구별하기 위한 외부·별관 그룹입니다.
+- 전체 지도는 첨부 원본이며, 클릭 영역은 원본의 장소 좌표에 맞춰집니다. 층별 보기는 완성 화면의 3열 도면과 계단 형식을 따릅니다.
+- 최단 경로의 내부 실제 장소 중 최대 2곳을 순서가 있는 단서 마커로 사용합니다. 단서 마커는 힌트만 열며, 현재 위치는 보물 획득 때 바뀝니다. 단서가 1곳이면 그 마커로 나머지 힌트가 열립니다. 바로 인접한 보물은 중간 마커 없이 정답 마커로 획득할 수 있습니다.
+- 순서에 맞지 않는 단서, 다른 장소, 알 수 없는 QR은 오답이며 배정·위치·경로·힌트·단계가 변하지 않습니다.
+
+## 코드 구성
+
+- `app/`: 메인 및 `/game/[screen]`의 8개 정적 게임 경로, 공통 스타일
+- `components/`: 화면 흐름, 양피지 패널, 지도, 힌트, 카메라, 보물상자
+- `data/`: 장소·그래프·마커·보물 개수
+- `lib/algorithms/dijkstra.ts`: 외부 경로 라이브러리를 쓰지 않는 다익스트라
+- `lib/game/`: 배정·힌트·마커 판정·획득·교환권 생성
+- `services/`: localStorage와 실제 QR 인식
+- `scripts/generate-markers.ts`: 인쇄용 QR 생성
+- `tests/game.test.ts`: 그래프·전체 최단 거리·배정·게임 진행·저장·실제 QR 해독 테스트
+
+## 저장 범위
+
+진행과 교환권은 같은 기기·브라우저·사이트 주소의 localStorage에 보관됩니다. 새로고침해도 번호는 유지됩니다. 새 게임을 완료해 시작하거나 브라우저 데이터를 삭제하면 이전 기록이 교체·삭제됩니다. 서버 동기화, 여러 사람 사이 교환권 번호의 전역 중복 방지, 담당자 사용 처리 기능은 이번 요청의 로컬 저장 범위에 포함되지 않습니다. `used`는 초기 false로 저장합니다.
+
+## 검증
+
+`VALIDATION.md`에 실제 검증 결과를 기록했습니다. Next.js 설치 및 정적 내보내기는 공식 문서를 따릅니다: https://nextjs.org/docs/app/getting-started/installation , https://nextjs.org/docs/app/guides/static-exports . QR 라이브러리: https://github.com/cozmo/jsQR .

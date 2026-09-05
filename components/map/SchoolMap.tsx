@@ -1,0 +1,10 @@
+'use client';
+import {Fragment} from 'react';
+import {locations} from '@/data/locations';
+import {MapPin} from 'lucide-react';
+export default function SchoolMap({selected,collected=[],onSelect,tab='전체'}:{selected:string;collected?:string[];onSelect?:(id:string)=>void;tab?:string}){
+ const floor=Number.parseInt(tab);const filtered=tab==='전체'?locations:tab==='별관'?locations.filter(l=>l.floor===0):locations.filter(l=>l.floor===floor);
+ if(tab!=='전체')return <div className="floor-map"><div className="floor-heading"><strong>{tab}</strong><small>{tab==='별관'?'학교 바깥과 별관의 공간을 살펴보세요':'중앙 계단을 기준으로 주변 공간을 살펴보세요'}</small></div><div className="floor-rooms"><div className="stairs left-stairs">계단</div>{filtered.map(l=><Fragment key={l.id}>{l.name.includes('학년 교무실')&&<div className="room center-stairs">중앙 계단</div>}<div className={`room ${l.type} ${selected===l.id?'selected':''}`}><span>{selected===l.id&&<MapPin size={18}/>} {l.name}</span>{collected.includes(l.id)&&<span aria-label="획득한 보물">🏆</span>}</div></Fragment>)}<div className="stairs right-stairs">계단</div></div></div>;
+ return <div className="school-map"><svg viewBox="325 65 1250 940" role="group" aria-label="학교 전체 지도"><image href="/maps/school.png" x="0" y="0" width="1920" height="1080"/>{filtered.map(l=>{const p=l.mapPosition;return <g key={l.id} role={onSelect?'button':undefined} aria-label={onSelect?`현재 위치 ${l.name}`:l.name} tabIndex={onSelect?0:undefined} onClick={()=>onSelect?.(l.id)} onKeyDown={e=>{if(onSelect&&(e.key==='Enter'||e.key===' ')){e.preventDefault();onSelect(l.id)}}} className={onSelect?'map-hotspot':''}><title>{l.name}</title><rect x={p.x} y={p.y} width={p.width} height={p.height} fill={selected===l.id?'#63cceaaa':'transparent'} stroke={selected===l.id?'#168fbb':'transparent'} strokeWidth="7"/>{selected===l.id&&<g transform={`translate(${p.x+p.width/2-18},${p.y-3})`}><path d="M18 0C-5 0-5 27 18 49C41 27 41 0 18 0Z" fill="#138db5" stroke="#fff0ce" strokeWidth="3"/><circle cx="18" cy="17" r="7" fill="#fff0ce"/></g>}{collected.includes(l.id)&&<text x={p.x+p.width/2} y={p.y+p.height/2+13} fontSize="39" textAnchor="middle">🏆</text>}</g>})}</svg></div>
+}
+

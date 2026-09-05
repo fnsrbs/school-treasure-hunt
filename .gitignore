@@ -1,0 +1,8 @@
+node_modules/
+.next/
+out/
+test-results/
+*.tsbuildinfo
+
+site-deploy.tar.gz
+

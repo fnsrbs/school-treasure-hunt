@@ -1,0 +1,1 @@
+export default function Treasure({large=false}:{large?:boolean}){return <div className={`treasure-art ${large?'large':''}`}><img src="/treasures/chest.png" alt="황금빛으로 빛나는 보물상자"/><span className="sparkle s1">✦</span><span className="sparkle s2">✦</span><span className="sparkle s3">✧</span></div>}
