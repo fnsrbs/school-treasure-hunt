@@ -57,3 +57,11 @@ node node_modules/next/dist/bin/next build
 ## 검증
 
 `VALIDATION.md`에 실제 검증 결과를 기록했습니다. Next.js 설치 및 정적 내보내기는 공식 문서를 따릅니다: https://nextjs.org/docs/app/getting-started/installation , https://nextjs.org/docs/app/guides/static-exports . QR 라이브러리: https://github.com/cozmo/jsQR .
+
+## 하나의 테스트 AR 마커 (2026-09-07)
+
+`/markers/test/`에서 마커를 인쇄하거나 다른 화면에 띄워 카메라에 비춥니다. 동일한 QR로 힌트 2 → 힌트 3 → 현재 보물 획득이 진행됩니다. 한 번 인식할 때마다 카메라 화면이 닫히므로, 다음 인식을 위해 ‘AR 마커 인식하기’를 다시 누릅니다. 다음 보물에서도 같은 마커로 반복합니다. 이미 열린 힌트가 있으면 현재 단계부터 이어집니다.
+
+기능은 `lib/testing/testMarker.ts`에 분리되어 있습니다. 실제 이벤트에서는 `config/testMarker.ts`의 `enabled: true`를 `enabled: false`로 바꾸고 다시 빌드·배포하세요. 그러면 테스트 QR은 오답 처리되고 테스트 안내도 사라집니다. 실제 장소 마커는 그대로 동작합니다. URL이나 localStorage로 이 설정을 켤 수 없습니다. 테스트도 현재 게임 진행과 교환권에 반영되므로 테스트 후 새 게임을 시작하세요.
+
+마커 재생성: `node node_modules/tsx/dist/cli.mjs scripts/generate-test-marker.ts`

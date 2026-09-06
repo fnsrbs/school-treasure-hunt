@@ -1,0 +1,9 @@
+import QRCode from 'qrcode';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { TEST_MARKER_ID } from '../lib/testing/testMarker';
+async function main() {
+  await mkdir('public/markers/test', { recursive: true });
+  await QRCode.toFile('public/markers/test/marker.png', TEST_MARKER_ID, { width: 800, margin: 4, errorCorrectionLevel: 'H' });
+  await writeFile('public/markers/test/index.html', `<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AR 보물찾기 테스트 마커</title><style>body{font-family:system-ui,sans-serif;text-align:center;max-width:640px;margin:30px auto;padding:20px;color:#253b2a}img{width:400px;max-width:100%;height:auto}p{line-height:1.8}button,a{display:inline-block;padding:12px;margin:8px}@media print{button,a{display:none}}</style><h1>AR 보물찾기 테스트 마커</h1><img src="marker.png" alt="힌트와 보물 획득을 테스트하는 QR 마커"><p>이 마커를 다른 화면에 띄우거나 인쇄하세요.<br>게임에서 ‘AR 마커 인식하기’를 누르고 비춰주세요.</p><p><b>첫 인식: 힌트 2 → 두 번째: 힌트 3 → 세 번째: 보물 획득</b><br>매번 힌트를 확인하고 카메라를 다시 열어주세요.<br>다음 보물에서도 같은 마커를 사용합니다.<br>이미 힌트가 열렸다면 현재 단계부터 이어집니다.</p><p>테스트 기능이 켜진 게임에서만 동작합니다.</p><button onclick="window.print()">인쇄하기</button><a href="marker.png" download="school-test-marker.png">PNG 다운로드</a></html>`);
+}
+main();
