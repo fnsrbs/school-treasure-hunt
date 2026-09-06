@@ -6,3 +6,8 @@ test-results/
 
 site-deploy.tar.gz
 
+
+.pnpm-store/
+.env*
+!.env.example
+
