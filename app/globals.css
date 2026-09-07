@@ -14,3 +14,10 @@
 .ar-confirm .gold{color:#49351b}
 @keyframes ar-hover{0%,100%{transform:translateY(4px) rotateY(-6deg)}50%{transform:translateY(-10px) rotateY(6deg)}}
 @media(prefers-reduced-motion:reduce){.ar-floating-treasure{animation:none}}
+.ar-tracking-layer{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.ar-qr-plane{position:absolute;left:0;top:0;width:1px;height:1px;transform-origin:0 0;will-change:transform}
+.ar-tracked-image{position:absolute;left:0;top:0;width:1px;height:1px;max-width:none;filter:drop-shadow(0 0 .025px #ffd46a);pointer-events:none}
+.ar-discovery-title{position:relative;z-index:2;background:#10251b99;border-radius:9px;padding:8px;pointer-events:none}
+.ar-tracking-lost{z-index:2;background:#10251baa;padding:10px;border-radius:8px;font-size:13px}
+.ar-discovery{background:linear-gradient(#081c2470,transparent 25%,transparent 75%,#081c2480)}
+.ar-qr-plane,.ar-tracked-image{width:256px;height:256px}
