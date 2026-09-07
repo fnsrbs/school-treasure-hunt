@@ -65,3 +65,9 @@ node node_modules/next/dist/bin/next build
 기능은 `lib/testing/testMarker.ts`에 분리되어 있습니다. 실제 이벤트에서는 `config/testMarker.ts`의 `enabled: true`를 `enabled: false`로 바꾸고 다시 빌드·배포하세요. 그러면 테스트 QR은 오답 처리되고 테스트 안내도 사라집니다. 실제 장소 마커는 그대로 동작합니다. URL이나 localStorage로 이 설정을 켤 수 없습니다. 테스트도 현재 게임 진행과 교환권에 반영되므로 테스트 후 새 게임을 시작하세요.
 
 마커 재생성: `node node_modules/tsx/dist/cli.mjs scripts/generate-test-marker.ts`
+
+## 카메라 AR 발견 확인
+
+정상 마커를 인식하면 카메라 영상을 계속 표시하면서 보물상자, 부유 애니메이션, 황금빛 효과를 합성합니다. 단서 마커는 ‘다음으로’, 보물 마커는 ‘확인’을 눌러야 상태를 저장하고 다음 화면으로 진행합니다. 확인 전에는 추가 인식을 무시하며, 뒤로 이동하거나 새로고침하면 아직 확인하지 않은 획득은 반영하지 않습니다. 기존 테스트 마커에도 동일하게 적용됩니다.
+
+이 효과는 실시간 카메라 위의 2D 이미지 합성입니다. 마커 위치 추적·실제 공간 앵커·WebXR 3D 추적은 사용하지 않습니다.
