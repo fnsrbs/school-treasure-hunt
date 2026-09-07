@@ -1,5 +1,5 @@
 import {locationById} from '@/data/locations';
-import {findShortestPath} from '@/lib/algorithms/dijkstra';
+import {findShortestPath} from '@/lib/algorithms/aStar';
 import {assignTreasures} from './assignTreasures';
 import {getClueMarkers} from './generateHints';
 import {generateCoupon} from './generateCoupon';
@@ -9,3 +9,4 @@ export function scanMarker(game:GameState,markerId:string):{kind:'wrong'|'clue'|
  if(game.hintStage<3&&game.clueMarkers[game.hintStage-1]===markerId)return {kind:'clue',game:{...game,hintStage:game.hintStage===game.clueMarkers.length?3:game.hintStage+1,screen:'hint'}};
  return {kind:'wrong',game};}
 export function nextTreasure(game:GameState):GameState {if(game.status!=='found')return game;if(game.collected.length===3)return {...game,status:'complete',screen:'final'};const currentTreasure=game.currentTreasure+1,currentRoute=findShortestPath(game.currentLocation,game.treasures[currentTreasure]);return {...game,currentTreasure,currentRoute,clueMarkers:getClueMarkers(currentRoute),hintStage:1,status:'hunting',screen:'map'};}
+

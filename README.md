@@ -44,7 +44,7 @@ node node_modules/next/dist/bin/next build
 - `app/`: 메인 및 `/game/[screen]`의 8개 정적 게임 경로, 공통 스타일
 - `components/`: 화면 흐름, 양피지 패널, 지도, 힌트, 카메라, 보물상자
 - `data/`: 장소·그래프·마커·보물 개수
-- `lib/algorithms/dijkstra.ts`: 외부 경로 라이브러리를 쓰지 않는 다익스트라
+- `lib/algorithms/aStar.ts`: 외부 경로 라이브러리를 쓰지 않는 A*
 - `lib/game/`: 배정·힌트·마커 판정·획득·교환권 생성
 - `services/`: localStorage와 실제 QR 인식
 - `scripts/generate-markers.ts`: 인쇄용 QR 생성
@@ -72,3 +72,12 @@ node node_modules/next/dist/bin/next build
 
 QR의 네 모서리를 연속 추적하고 원근 변환으로 이미지를 QR 평면에 부착합니다. 위치·거리·회전·기울기에 따라 이미지가 변하며 QR을 놓치면 숨기고 같은 QR을 다시 찾으면 복귀합니다. 힌트에는 단서 두루마리, 보물에는 상자를 표시합니다. 확인 대기 중에는 게임 판정을 중복 실행하지 않습니다. QR 평면 기반 추적이며 마커 없이 공간에 남는 WebXR 앵커는 아닙니다.
 
+
+
+## A* 경로 탐색
+
+`lib/algorithms/aStar.ts`의 `findShortestPath(startId, destinationId)`를 사용합니다. g는 실제 간선 가중치 합, h는 원본 지도 장소 중심 좌표의 유클리드 직선거리에 거리 환산계수를 곱한 값, f는 g+h입니다. 열린 정점 중 f가 가장 작은 정점을 선택합니다.
+
+지도는 픽셀, 가중치는 이동 거리이므로 h를 픽셀 그대로 쓰면 실제 최단거리보다 크게 추정할 수 있습니다. 환산계수는 모든 간선의 ‘가중치 ÷ 두 좌표의 직선거리’ 최솟값으로 정해 h가 과대 추정되지 않도록 했습니다. 오른쪽 계단의 가상 정점에는 지도 오른쪽 통로 x=1380과 해당 층 중심 y를 사용합니다. 기존 장소 데이터, 연결 관계, 가중치는 바꾸지 않습니다.
+
+`lib/game/engine.ts`의 새 게임 및 다음 보물 계산이 A*를 호출하고, 기존 `{path, distance}` 형식으로 단계별 힌트와 단서 마커 생성에 전달합니다. 이전 저장 게임은 현재 탐색의 경로와 열린 힌트를 보존하고 다음 보물부터 A*를 사용합니다. `dijkstra.ts`는 과거 import 호환용 재내보내기만 남았으며 내부 탐색은 A*입니다.
