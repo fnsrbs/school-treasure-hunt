@@ -21,3 +21,5 @@
 .ar-tracking-lost{z-index:2;background:#10251baa;padding:10px;border-radius:8px;font-size:13px}
 .ar-discovery{background:linear-gradient(#081c2470,transparent 25%,transparent 75%,#081c2480)}
 .ar-qr-plane,.ar-tracked-image{width:256px;height:256px}
+
+.coupon-lookup-result{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;font-size:14px;margin-top:24px}.coupon-lookup-result dt{font-weight:700}.coupon-lookup-result dd{margin:0;overflow-wrap:anywhere}.coupon-lookup-panel form .gold{margin-top:18px}.completion-error{padding:16px;margin:12px 0;border-radius:12px;font-size:14px}.completion-error p{margin:0 0 12px}.home-content>.text-button{color:#fff4d4}
