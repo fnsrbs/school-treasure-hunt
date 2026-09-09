@@ -1,3 +1,4 @@
+import {installLocationCamera} from './helpers/locationCamera.mjs';
 import {chromium} from '@playwright/test';
 import assert from 'node:assert/strict';
 
@@ -5,6 +6,7 @@ import assert from 'node:assert/strict';
 if(process.env.RUN_LIVE_SUPABASE_TEST!=='1')throw new Error('Set RUN_LIVE_SUPABASE_TEST=1 against the configured development server.');
 const browser=await chromium.launch({channel:'chrome',headless:true});
 const page=await browser.newPage({viewport:{width:390,height:844}});
+await installLocationCamera(page);
 const nickname='QA'+Date.now().toString().slice(-7);
 console.log('QA nickname:',nickname);
 try{
@@ -20,8 +22,6 @@ try{
  for(let n=0;n<3;n++){
   await page.getByRole('button',{name:'힌트 보기',exact:true}).click();
   await page.getByRole('button',{name:'AR 마커 인식하기',exact:true}).click();
-  await page.getByText('개발 테스트',{exact:true}).click();
-  await page.getByRole('button',{name:'정답 마커 테스트',exact:true}).click();
   await page.getByRole('button',{name:'확인',exact:true}).click();
   if(n<2)await page.getByRole('button',{name:'다음 보물 지도 보기',exact:true}).click();
  }
