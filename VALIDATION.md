@@ -63,3 +63,8 @@ Codex 브라우저에서 실제 클릭·입력을 사용했습니다.
 재실행: `node --import tsx --test tests/*.test.ts`, `node node_modules/typescript/bin/tsc --noEmit`, `node node_modules/next/dist/bin/next build`.
 브라우저 검증: Supabase 공개 환경 변수가 설정된 로컬 개발 서버 실행 후 `node tests/players.browser.mjs`.
 이번 Windows 환경에서는 pnpm의 자동 설치 확인이 중단되어 설치된 실행 파일로 검증했고, tsx 사용자 정보 조회 제한을 해결하기 위해 승인된 환경에서 테스트를 실행했다.
+
+## 단서 발견 화면 보완 — 2026-09-09
+
+- 단서 QR 추적이 끊겨도 발견한 두루마리를 중앙에 표시하고, 다음으로 넘어가기 버튼으로 새 힌트를 연다. 보물 획득 확인은 기존 동작을 유지한다.
+- 브라우저 카메라 입력에 실제 단서 QR을 포함하도록 확장했다. 단서 두루마리 표시, 영상 중단 후 두루마리 유지, 다음 힌트 진행과 보물 3개·쿠폰 전체 흐름 통과. TypeScript 검사와 운영 빌드 통과.

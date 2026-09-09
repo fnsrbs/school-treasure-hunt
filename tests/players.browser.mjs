@@ -6,7 +6,7 @@ import fs from 'node:fs/promises';
 // UI fault injection. The companion SQL suite separately verifies real database behavior.
 const browser=await chromium.launch({channel:'chrome',headless:true});
 const page=await browser.newPage({viewport:{width:390,height:844}});
-await installLocationCamera(page);
+await installLocationCamera(page,{preferClues:true});
 let registrations=0,completions=0,lookups=0,failComplete=true,mode='ok',issued='';
 await page.route('**/rest/v1/rpc/**',async route=>{
  const name=route.request().url().split('/').pop(),args=route.request().postDataJSON();
@@ -51,6 +51,13 @@ try{
  for(let n=0;n<3;n++){
   await page.getByRole('button',{name:'힌트 보기',exact:true}).click();
   await page.getByRole('button',{name:'AR 마커 인식하기',exact:true}).click();
+  while(await page.evaluate(()=>{const g=JSON.parse(localStorage.getItem('school-treasure-hunt-v1'));return g.hintStage<3&&!!g.clueMarkers[g.hintStage-1];})){
+   await page.getByRole('img',{name:'QR 위의 단서 두루마리',exact:true}).waitFor();
+   await page.locator('video').evaluate(video=>video.srcObject.getVideoTracks().forEach(track=>{track.enabled=false;}));
+   await page.getByRole('img',{name:'발견한 단서 두루마리',exact:true}).waitFor();
+   await page.getByRole('button',{name:'다음으로 넘어가기',exact:true}).click();
+   await page.getByRole('button',{name:'AR 마커 인식하기',exact:true}).click();
+  }
   await page.getByRole('button',{name:'확인',exact:true}).click();
   if(n<2)await page.getByRole('button',{name:'다음 보물 지도 보기',exact:true}).click();
  }
